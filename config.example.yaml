@@ -1,0 +1,19 @@
+database:
+  user: "daysling"
+  pwd: "*******"
+  host: "localhost"
+  port: 3306
+  database: "newsdb"
+  table: news
+api-key: "*******"
+sources:
+  - "abc-news"
+  - "abc-news-au"
+  - "al-jazeera-english"
+  - "ars-technica"
+  - "associated-press"
+  - "australian-financial-review"
+  - "axios"
+  - "bbc-news"
+  - "bbc-sport"
+  - "bleacher-report"
