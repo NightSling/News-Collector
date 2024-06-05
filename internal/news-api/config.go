@@ -15,8 +15,13 @@ type Config struct {
 		Database string `yaml:"database"`
 		Table    string `yaml:"table"`
 	} `yaml:"database"`
-	ApiKey  string   `yaml:"api-key"`
-	Sources []string `yaml:"sources"`
+	ApiKey    string   `yaml:"api-key"`
+	Sources   []string `yaml:"sources"`
+	Scheduler struct {
+		Interval int    `yaml:"interval"`
+		LastRan  string `yaml:"last-ran"`
+		Enabled  bool   `yaml:"enable"`
+	} `yaml:"scheduler"`
 }
 
 func NewConfig(configPath string) (*Config, error) {
@@ -35,4 +40,23 @@ func NewConfig(configPath string) (*Config, error) {
 	}
 
 	return c, nil
+}
+
+func SaveConfig(configPath string, config *Config) error {
+	file, err := os.OpenFile(configPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		// if the file does not exist, create it
+		file, err = os.Create(configPath)
+		if err != nil {
+			return err
+		}
+	}
+	defer file.Close()
+	// write to a string stream
+	d := yaml.NewEncoder(file)
+	if err := d.Encode(config); err != nil {
+		return err
+	}
+	return nil
+
 }

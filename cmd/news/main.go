@@ -30,30 +30,21 @@ func main() {
 				log.Fatal(err)
 				return err
 			}
-			db, err := newsapi.NewConnection(cfg)
-			if err != nil {
-				log.Fatal(err)
-				return err
-			}
-			// loop through 1-5 pages
-			fmt.Printf("[INFO] Ran time: %s\n", time.Now().Format("2006-01-02 15:04:05"))
-			for i := 1; i <= 5; i++ {
-				news, err := newsapi.FetchNews(cfg.ApiKey, cfg.Sources, i)
-				if err != nil {
-					log.Fatal(err)
-					return err
+			if cfg.Scheduler.Enabled {
+				if !newsapi.CheckTime(cfg) {
+					fmt.Printf("[INFO] [Scheduler] Interval has not passed.\n")
+					return nil
 				}
-				// save the news to the database
-				rows, err := newsapi.SaveNews(db, news, cfg.Database.Table)
-				if err != nil {
-					log.Fatal(err)
-					return err
-				}
-				fmt.Printf("[INFO] Saved %d rows from page %d.\n", rows, i)
+				newsapi.UpdateTime(cfg)
 			}
-			fmt.Printf("[INFO] Done!\n\n") // another new line since i use stdout to redirect to a file.
-			defer db.Close()
-			return nil
+			err = action_main(cfg)
+			if err == nil && cfg.Scheduler.Enabled {
+				err = newsapi.SaveConfig(c.Path("config"), cfg)
+				if err == nil {
+					fmt.Printf("[INFO] [Scheduler] Updated last ran time to %s\n\n", cfg.Scheduler.LastRan)
+				}
+			}
+			return err
 		},
 	}
 
@@ -61,4 +52,32 @@ func main() {
 		log.Fatal(err)
 	}
 
+}
+
+func action_main(cfg *newsapi.Config) error {
+	db, err := newsapi.NewConnection(cfg)
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+	// loop through 1-5 pages
+	fmt.Printf("[INFO] Ran time: %s\n", time.Now().Format("2006-01-02 15:04:05"))
+	for i := 1; i <= 5; i++ {
+		news, err := newsapi.FetchNews(cfg.ApiKey, cfg.Sources, i)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+		// save the news to the database
+		rows, err := newsapi.SaveNews(db, news, cfg.Database.Table)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+		fmt.Printf("[INFO] Saved %d rows from page %d.\n", rows, i)
+	}
+	fmt.Println("[INFO] Done!")
+
+	defer db.Close()
+	return nil
 }

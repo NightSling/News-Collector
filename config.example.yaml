@@ -17,3 +17,11 @@ sources:
   - "bbc-news"
   - "bbc-sport"
   - "bleacher-report"
+
+scheduler:
+  # measured in hours
+  enable: true
+  interval: 24
+  last-ran: "2006-01-02T15:04:05Z07:00"
+  # runs every 24 hours or later, use crontab to schedule to run every hour.
+# WARNING: NO COMMENTS ARE PRESERVED IN THE YAML FILE IF USING SCHEDULER
